@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Real-Time Weather Pipeline — Build Guide</title>
+<style>
+@page {
+  size: A4;
+  margin: 20mm 18mm 18mm 18mm;
+  @bottom-center {
+    content: counter(page);
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 8pt;
+    color: #8a94a6;
+  }
+  @top-right {
+    content: "Real-Time Weather Pipeline — Build Guide";
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 7.5pt;
+    color: #b0b8c6;
+  }
+}
+@page :first { @top-right { content: ""; } @bottom-center { content: ""; } }
+
+:root {
+  --ink:      #1b2330;
+  --ink-soft: #4a5566;
+  --muted:    #7b8698;
+  --rule:     #dde3ec;
+  --accent:   #1f5fa8;
+  --accent-d: #143d6e;
+  --warn-bg:  #fff6e8;
+  --warn-bd:  #e0a24a;
+  --tip-bg:   #eef5fb;
+  --tip-bd:   #4a8fd0;
+  --trap-bg:  #fdeeee;
+  --trap-bd:  #c8524f;
+  --code-bg:  #f5f7fa;
+}
+
+body {
+  font-family: "DejaVu Serif", Georgia, serif;
+  font-size: 9.8pt;
+  line-height: 1.55;
+  color: var(--ink);
+  hyphens: auto;
+}
+
+h1, h2, h3, h4, .sans { font-family: "DejaVu Sans", Helvetica, sans-serif; }
+
+/* ---------- cover ---------- */
+.cover { height: 245mm; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 62mm; page-break-after: always; }
+.cover .eyebrow { font-family: "DejaVu Sans", sans-serif; font-size: 9pt; letter-spacing: 2.5pt; text-transform: uppercase; color: var(--accent); margin-bottom: 8mm; }
+.cover h1 { font-size: 30pt; line-height: 1.15; margin: 0 0 6mm 0; color: var(--ink); }
+.cover .sub { font-size: 12pt; color: var(--ink-soft); font-style: italic; margin-bottom: 12mm; }
+.cover .rule { height: 3px; width: 40mm; background: var(--accent); margin-bottom: 12mm; }
+.cover .stack { font-family: "DejaVu Sans", sans-serif; font-size: 9.5pt; color: var(--ink-soft); line-height: 2; }
+.cover .stack b { color: var(--ink); display: inline-block; width: 32mm; font-weight: bold; }
+.cover .foot { margin-top: auto; font-family: "DejaVu Sans", sans-serif; font-size: 8.5pt; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 4mm; }
+
+/* ---------- structure ---------- */
+h2.phase {
+  page-break-before: always;
+  font-size: 17pt;
+  margin: 0 0 1mm 0;
+  color: var(--accent-d);
+  padding-bottom: 2mm;
+  border-bottom: 2px solid var(--accent);
+}
+h2.nobreak { page-break-before: avoid; }
+.phase-num { font-family: "DejaVu Sans", sans-serif; font-size: 8.5pt; letter-spacing: 2pt; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 1.5mm; }
+h3 { font-size: 11.5pt; margin: 7mm 0 2mm 0; color: var(--ink); page-break-after: avoid; }
+h4 { font-size: 9.8pt; margin: 5mm 0 1.5mm 0; color: var(--accent-d); page-break-after: avoid; }
+p { margin: 0 0 2.6mm 0; }
+ul, ol { margin: 0 0 3mm 0; padding-left: 5.5mm; }
+li { margin-bottom: 1.4mm; }
+a { color: var(--accent); text-decoration: none; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 8.4pt; background: var(--code-bg); padding: 0.4mm 1mm; border-radius: 1.5px; color: var(--accent-d); }
+pre {
+  font-family: "DejaVu Sans Mono", monospace; font-size: 7.8pt; line-height: 1.45;
+  background: var(--code-bg); border-left: 2.5px solid var(--accent);
+  padding: 3mm 3.5mm; margin: 3mm 0; overflow-wrap: break-word; white-space: pre-wrap;
+  page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; color: var(--ink); }
+
+/* ---------- meta strip under phase title ---------- */
+.meta { font-family: "DejaVu Sans", sans-serif; font-size: 8pt; color: var(--muted); margin: 0 0 4mm 0; }
+.meta span { margin-right: 6mm; }
+.meta b { color: var(--ink-soft); font-weight: normal; }
+
+/* ---------- callouts ---------- */
+.box { padding: 3mm 4mm; margin: 3.5mm 0; font-size: 9.2pt; page-break-inside: avoid; border-left: 3px solid; }
+.box .lbl { font-family: "DejaVu Sans", sans-serif; font-size: 7.5pt; letter-spacing: 1.5pt; text-transform: uppercase; display: block; margin-bottom: 1.5mm; font-weight: bold; }
+.box p:last-child, .box ul:last-child { margin-bottom: 0; }
+.tip  { background: var(--tip-bg);  border-color: var(--tip-bd); }
+.tip .lbl  { color: #2c6ba3; }
+.warn { background: var(--warn-bg); border-color: var(--warn-bd); }
+.warn .lbl { color: #a06a1c; }
+.trap { background: var(--trap-bg); border-color: var(--trap-bd); }
+.trap .lbl { color: #a83c39; }
+
+/* ---------- done checklist ---------- */
+.done { border: 1px solid var(--rule); border-top: 3px solid var(--accent); padding: 3mm 4mm; margin: 4mm 0 2mm 0; page-break-inside: avoid; background: #fbfcfe; }
+.done .lbl { font-family: "DejaVu Sans", sans-serif; font-size: 7.5pt; letter-spacing: 1.5pt; text-transform: uppercase; color: var(--accent); font-weight: bold; display: block; margin-bottom: 2mm; }
+.done ul { list-style: none; padding-left: 0; margin-bottom: 0; }
+.done li { padding-left: 6mm; text-indent: -6mm; font-size: 9.2pt; }
+.done li::before { content: "\2610"; font-size: 11pt; margin-right: 2mm; color: var(--accent); }
+
+/* ---------- self-test ---------- */
+.quiz { background: #f7f8fa; padding: 3mm 4mm; margin: 4mm 0; page-break-inside: avoid; }
+.quiz .lbl { font-family: "DejaVu Sans", sans-serif; font-size: 7.5pt; letter-spacing: 1.5pt; text-transform: uppercase; color: var(--muted); font-weight: bold; display: block; margin-bottom: 2mm; }
+.quiz ol { margin-bottom: 0; font-style: italic; color: var(--ink-soft); font-size: 9.2pt; }
+
+/* ---------- tables ---------- */
+table { width: 100%; border-collapse: collapse; margin: 3mm 0; font-size: 8.6pt; page-break-inside: avoid; }
+th { hyphens: none; font-family: "DejaVu Sans", sans-serif; text-align: left; font-size: 7.8pt; letter-spacing: 0.6pt; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--rule); padding: 1.5mm 2mm 1.5mm 0; }
+td { padding: 1.6mm 2mm 1.6mm 0; border-bottom: 1px solid #eef1f6; vertical-align: top; }
+td:first-child { white-space: nowrap; }
+
+/* ---------- TOC ---------- */
+.toc { page-break-after: always; }
+.toc h2 { font-size: 15pt; color: var(--accent-d); border-bottom: 2px solid var(--accent); padding-bottom: 2mm; margin-bottom: 5mm; }
+.toc ul { list-style: none; padding: 0; }
+.toc li { margin-bottom: 2.2mm; font-family: "DejaVu Sans", sans-serif; font-size: 9.3pt; }
+.toc a { color: var(--ink); }
+.toc a::after { content: " " leader('.') " " target-counter(attr(href), page); color: var(--muted); }
+.toc .t-num { display: inline-block; width: 16mm; color: var(--accent); font-size: 8pt; letter-spacing: 0.5pt; }
+.toc .t-app { color: var(--ink-soft); }
+
+figure { margin: 5mm 0; page-break-inside: avoid; text-align: center; }
+figcaption { font-family: "DejaVu Sans", sans-serif; font-size: 7.8pt; color: var(--muted); margin-top: 2mm; }
+.lead { font-size: 10.5pt; color: var(--ink-soft); border-left: 3px solid var(--rule); padding-left: 4mm; margin-bottom: 5mm; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="cover">
+  <div class="eyebrow">Build Guide · Zero to Mastery</div>
+  <h1>Real-Time Weather<br>Data Platform</h1>
+  <div class="rule"></div>
+  <div class="sub">Streaming ingestion, warehouse modelling, orchestration,<br>dashboards, and a temperature forecasting model — built from scratch.</div>
+  <div class="stack">
+    <b>Transport</b> Apache Kafka<br>
+    <b>Storage</b> PostgreSQL<br>
+    <b>Modelling</b> dbt<br>
+    <b>Orchestration</b> Apache Airflow<br>
+    <b>Visualization</b> Apache Superset<br>
+    <b>Forecasting</b> Time-series ML<br>
+    <b>Runtime</b> Docker Compose
+  </div>
+  <div class="foot">11 phases · ~60–90 hours of focused work · every line of code written by you</div>
+</section>
+
+<!-- ============================ TOC ============================ -->
+<section class="toc">
+  <h2>Contents</h2>
+  <ul>
+    <li><span class="t-num">Start</span><a href="#howto">How to use this guide</a></li>
+    <li><span class="t-num">Design</span><a href="#arch">The architecture you are building</a></li>
+    <li><span class="t-num">Phase 0</span><a href="#p0">Foundations — repo, tooling, environment</a></li>
+    <li><span class="t-num">Phase 1</span><a href="#p1">The warehouse — PostgreSQL in Docker</a></li>
+    <li><span class="t-num">Phase 2</span><a href="#p2">The source — understanding Open-Meteo</a></li>
+    <li><span class="t-num">Phase 3</span><a href="#p3">The backbone — Kafka and the producer</a></li>
+    <li><span class="t-num">Phase 4</span><a href="#p4">The sink — consumer into PostgreSQL</a></li>
+    <li><span class="t-num">Phase 5</span><a href="#p5">Transformation — dbt staging and marts</a></li>
+    <li><span class="t-num">Phase 6</span><a href="#p6">Orchestration — Apache Airflow</a></li>
+    <li><span class="t-num">Phase 7</span><a href="#p7">Visualization — Apache Superset</a></li>
+    <li><span class="t-num">Phase 8</span><a href="#p8">Forecasting — the time-series model</a></li>
+    <li><span class="t-num">Phase 9</span><a href="#p9">Hardening — tests, CI, observability</a></li>
+    <li><span class="t-num">Phase 10</span><a href="#p10">Shipping — documentation and portfolio</a></li>
+    <li><span class="t-num t-app">App. A</span><a href="#appA">Concept glossary</a></li>
+    <li><span class="t-num t-app">App. B</span><a href="#appB">Traps that break this exact project</a></li>
+    <li><span class="t-num t-app">App. C</span><a href="#appC">Interview questions to test yourself</a></li>
+    <li><span class="t-num t-app">App. D</span><a href="#appD">Stretch goals once it works</a></li>
+  </ul>
+</section>
+
+<!-- ============================ HOW TO USE ============================ -->
+<h2 class="phase nobreak" id="howto"><span class="phase-num">Start here</span>How to use this guide</h2>
+
+<p class="lead">This guide never gives you the finished project. It gives you the goal, the
+concepts, the tasks, a way to prove each piece works, and the traps that will otherwise
+cost you an evening. The code is yours to write — that is the entire point.</p>
+
+<h3>The rules</h3>
+<ol>
+  <li><b>One phase, one branch, one merge.</b> <code>git checkout -b phase-3-kafka</code>, build, verify, merge to <code>main</code>. Your commit history becomes the proof that you built this.</li>
+  <li><b>Do not skip ahead.</b> Each phase depends on the one before it being genuinely working, not "mostly working".</li>
+  <li><b>Do not move on until the Definition of Done box is fully ticked.</b> Half-finished layers compound into a project you cannot debug.</li>
+  <li><b>Type the code, do not paste it.</b> Where this guide shows a snippet, it is an anchor for something unguessable (a Docker listener config, a Kafka setting). Application logic is described, not written — you write it.</li>
+  <li><b>Answer the self-test questions out loud.</b> If you cannot explain it, you have copied it, and an interviewer will find that out in ninety seconds.</li>
+  <li><b>Write the README as you go</b>, at the end of every phase. A README written at the end is always a lie.</li>
+</ol>
+
+<h3>What "mastered" means here</h3>
+<p>At the end you should be able to sit in front of a stranger, open a terminal, run one
+command, show a live dashboard with a forecast on it, and then answer <i>any</i> question
+about why each component exists, what happens when it fails, and what you would change to
+handle a thousand cities instead of five. Appendix C is the exam.</p>
+
+<h3>Time budget</h3>
+<table>
+  <tr><th>Phase</th><th>Focus</th><th>Realistic time</th></tr>
+  <tr><td>0–2</td><td>Repo, Postgres, API</td><td>6–9 hours</td></tr>
+  <tr><td>3–4</td><td>Kafka producer and consumer</td><td>12–18 hours</td></tr>
+  <tr><td>5</td><td>dbt</td><td>8–12 hours</td></tr>
+  <tr><td>6</td><td>Airflow</td><td>8–12 hours</td></tr>
+  <tr><td>7</td><td>Superset</td><td>5–8 hours</td></tr>
+  <tr><td>8</td><td>Forecasting model</td><td>12–20 hours</td></tr>
+  <tr><td>9–10</td><td>Tests, CI, documentation</td><td>8–12 hours</td></tr>
+</table>
+
+<div class="box tip">
+  <span class="lbl">Pace</span>
+  <p>Two focused hours a day finishes this in about six weeks. Nine hours on a Saturday
+  finishes Phase 3 and teaches you nothing that survives to Monday. Consistency beats sprints
+  for anything with this much conceptual surface area.</p>
+</div>
+
+<!-- ============================ ARCHITECTURE ============================ -->
+<h2 class="phase" id="arch"><span class="phase-num">Design</span>The architecture you are building</h2>
+
+<p>Before writing a line of code, understand the shape of the thing. Data moves left to right
+through five responsibilities, and each one exists because the one before it should not be
+doing its job.</p>
+
+<figure>
+<svg width="470" height="300" viewBox="0 0 470 300" xmlns="http://www.w3.org/2000/svg" font-family="DejaVu Sans, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#4a5566"/>
+    </marker>
+  </defs>
+  <!-- source -->
+  <rect x="10" y="14" width="108" height="34" rx="4" fill="#eef5fb" stroke="#4a8fd0" stroke-width="1.2"/>
+  <text x="64" y="30" font-size="9.5" fill="#143d6e" text-anchor="middle" font-weight="bold">Open-Meteo API</text>
+  <text x="64" y="41" font-size="7.5" fill="#4a5566" text-anchor="middle">5 cities · hourly</text>
+  <line x1="64" y1="48" x2="64" y2="72" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <!-- producer -->
+  <rect x="10" y="74" width="108" height="34" rx="4" fill="#fff" stroke="#4a5566" stroke-width="1.2"/>
+  <text x="64" y="90" font-size="9.5" fill="#1b2330" text-anchor="middle" font-weight="bold">Producer</text>
+  <text x="64" y="101" font-size="7.5" fill="#4a5566" text-anchor="middle">Python · key = city</text>
+  <line x1="118" y1="91" x2="150" y2="91" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <!-- kafka -->
+  <rect x="152" y="60" width="112" height="62" rx="4" fill="#fdf3e8" stroke="#e0a24a" stroke-width="1.4"/>
+  <text x="208" y="79" font-size="10" fill="#7a4d10" text-anchor="middle" font-weight="bold">Apache Kafka</text>
+  <text x="208" y="93" font-size="7.5" fill="#4a5566" text-anchor="middle">topic: weather.raw</text>
+  <text x="208" y="104" font-size="7.5" fill="#4a5566" text-anchor="middle">3 partitions · retention 7d</text>
+  <text x="208" y="115" font-size="7.5" fill="#4a5566" text-anchor="middle">replayable log</text>
+  <line x1="264" y1="91" x2="296" y2="91" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <!-- consumer -->
+  <rect x="298" y="74" width="108" height="34" rx="4" fill="#fff" stroke="#4a5566" stroke-width="1.2"/>
+  <text x="352" y="90" font-size="9.5" fill="#1b2330" text-anchor="middle" font-weight="bold">Consumer</text>
+  <text x="352" y="101" font-size="7.5" fill="#4a5566" text-anchor="middle">idempotent upsert</text>
+  <line x1="352" y1="108" x2="352" y2="132" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <!-- postgres -->
+  <rect x="298" y="134" width="108" height="34" rx="4" fill="#eef5fb" stroke="#4a8fd0" stroke-width="1.2"/>
+  <text x="352" y="150" font-size="9.5" fill="#143d6e" text-anchor="middle" font-weight="bold">PostgreSQL</text>
+  <text x="352" y="161" font-size="7.5" fill="#4a5566" text-anchor="middle">raw.observations</text>
+  <line x1="298" y1="151" x2="266" y2="151" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <!-- dbt -->
+  <rect x="152" y="134" width="112" height="34" rx="4" fill="#fff" stroke="#4a5566" stroke-width="1.2"/>
+  <text x="208" y="150" font-size="9.5" fill="#1b2330" text-anchor="middle" font-weight="bold">dbt</text>
+  <text x="208" y="161" font-size="7.5" fill="#4a5566" text-anchor="middle">staging → marts</text>
+  <line x1="208" y1="168" x2="208" y2="190" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <line x1="208" y1="180" x2="352" y2="180" stroke="#4a5566" stroke-width="1.2"/>
+  <line x1="352" y1="180" x2="352" y2="190" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <!-- ml + superset -->
+  <rect x="120" y="192" width="118" height="38" rx="4" fill="#f2f0fb" stroke="#7a6bc4" stroke-width="1.2"/>
+  <text x="179" y="209" font-size="9.5" fill="#3c3178" text-anchor="middle" font-weight="bold">Forecast model</text>
+  <text x="179" y="221" font-size="7.5" fill="#4a5566" text-anchor="middle">writes mart.forecast</text>
+  <rect x="296" y="192" width="112" height="38" rx="4" fill="#eaf5ee" stroke="#4b9c6b" stroke-width="1.2"/>
+  <text x="352" y="209" font-size="9.5" fill="#1f5c3a" text-anchor="middle" font-weight="bold">Superset</text>
+  <text x="352" y="221" font-size="7.5" fill="#4a5566" text-anchor="middle">actual vs predicted</text>
+  <line x1="238" y1="211" x2="294" y2="211" stroke="#4a5566" stroke-width="1.2" marker-end="url(#a)"/>
+  <!-- airflow bar -->
+  <rect x="10" y="250" width="398" height="32" rx="4" fill="#f5f7fa" stroke="#7b8698" stroke-width="1.2" stroke-dasharray="3,2"/>
+  <text x="209" y="264" font-size="9.5" fill="#1b2330" text-anchor="middle" font-weight="bold">Apache Airflow — orchestration</text>
+  <text x="209" y="276" font-size="7.5" fill="#4a5566" text-anchor="middle">schedules dbt runs · retrains the model · runs data-quality checks · alerts on failure</text>
+  <line x1="209" y1="230" x2="209" y2="248" stroke="#7b8698" stroke-width="1" stroke-dasharray="3,2"/>
+</svg>
+<figcaption>The target architecture. Kafka decouples ingestion from storage; Airflow drives everything that runs on a schedule rather than continuously.</figcaption>
+</figure>
+
+<h3>Why each piece is there</h3>
+<table>
+  <tr><th>Component</th><th>Exists because</th></tr>
+  <tr><td><b>Kafka</b></td><td>Ingestion and storage should fail independently. If Postgres is down for ten minutes, the producer keeps writing and the consumer catches up. It also lets you add a second consumer later without touching the first.</td></tr>
+  <tr><td><b>Postgres</b></td><td>Kafka is a log, not a database. You cannot join, aggregate or serve a dashboard from a topic.</td></tr>
+  <tr><td><b>dbt</b></td><td>Business logic belongs in version-controlled, tested SQL — not buried in a Python script or a Superset chart.</td></tr>
+  <tr><td><b>Airflow</b></td><td>Scheduled, dependent, retryable work with visible history. A cron job gives you none of that.</td></tr>
+  <tr><td><b>Superset</b></td><td>The consumer of everything above. If a stakeholder cannot see it, it did not happen.</td></tr>
+  <tr><td><b>The model</b></td><td>It is what turns a pipeline into a product: the platform stops describing the past and starts making a claim about the future — one you can then measure against reality.</td></tr>
+</table>
+
+<div class="box warn">
+  <span class="lbl">A note on scale</span>
+  <p>Five cities of hourly weather is a tiny data volume, and Kafka is overkill for it in a
+  strict engineering sense. That is fine and you should say so out loud in an interview — then
+  explain that the architecture is chosen to demonstrate the pattern that <i>does</i> apply at
+  ten thousand sensors, and that you know exactly which parts would change. Pretending five
+  cities need Kafka is what makes a portfolio project look naive; knowing why it does not is
+  what makes it look senior.</p>
+</div>
+
+<!-- ============================ PHASE 0 ============================ -->
+<h2 class="phase" id="p0"><span class="phase-num">Phase 0</span>Foundations</h2>
+<p class="meta"><span><b>Goal:</b> a repository a stranger could clone and contribute to</span><span><b>Time:</b> 2–3 h</span><span><b>Branch:</b> <code>phase-0-foundations</code></span></p>
+
+<h4>You will learn</h4>
+<p>Git hygiene for data projects, why secrets must never enter history, dependency pinning,
+and the discipline of documenting before building.</p>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Confirm your toolchain: Docker Engine with Compose v2 (<code>docker compose version</code>), Python 3.11+, git, and at least <b>8 GB of free RAM</b> — Kafka, Airflow, Superset and Postgres together will use 4–6 GB.</li>
+  <li>Create the GitHub repository and set it as the remote. Make <code>main</code> your default branch and protect it from direct pushes if you want to force yourself into the branch habit.</li>
+  <li>Write the first real commit: the <code>.gitignore</code>, the <code>README.md</code> skeleton, and this guide in <code>docs/</code>.</li>
+  <li>Create a Python virtual environment (<code>python -m venv .venv</code>). This is for your local tooling and tests; the services themselves run in containers.</li>
+  <li>Design your configuration strategy <b>now</b>: create <code>.env.example</code> listing every variable the project will need with placeholder values, and confirm <code>.env</code> is gitignored. Every credential in this project comes from an environment variable — no exceptions, from the first line onwards.</li>
+  <li>Adopt a commit convention and stick to it. <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>refactor:</code>, <code>test:</code>, <code>chore:</code>. It costs nothing and reads as professional.</li>
+  <li>Write the "Build log" checklist into your README so progress is visible from the repo's front page.</li>
+</ol>
+
+<div class="box trap">
+  <span class="lbl">Trap</span>
+  <p>If you ever commit a real password and then delete it in a later commit, <b>it is still in
+  your history and still public.</b> Removing it requires rewriting history
+  (<code>git filter-repo</code>) and rotating the credential. Get <code>.env</code> into
+  <code>.gitignore</code> before the file exists, not after.</p>
+</div>
+
+<h4>Verify</h4>
+<pre><code>git status --short          # clean, nothing untracked that should be ignored
+git log --oneline           # your commits, authored by you
+cat .env.example            # exists, no real values
+docker compose version      # v2.x
+free -g                     # confirm available memory</code></pre>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li>Repository exists on GitHub with at least three meaningful commits</li>
+    <li><code>.env</code> is ignored, <code>.env.example</code> is committed</li>
+    <li>README shows the target architecture and the phase checklist</li>
+    <li>You can state, in one sentence each, what Kafka, dbt, Airflow and Superset do</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 1 ============================ -->
+<h2 class="phase" id="p1"><span class="phase-num">Phase 1</span>The warehouse</h2>
+<p class="meta"><span><b>Goal:</b> a persistent, healthy PostgreSQL you can connect to</span><span><b>Time:</b> 3–4 h</span><span><b>Branch:</b> <code>phase-1-postgres</code></span></p>
+
+<h4>You will learn</h4>
+<p>Docker Compose service definitions, named volumes versus bind mounts, healthchecks and
+dependency conditions, container networking and DNS, and warehouse schema layering.</p>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Write <code>docker-compose.yml</code> with a single <code>postgres</code> service. Pin the image to a specific minor version — never <code>latest</code>.</li>
+  <li>Pass credentials via <code>environment</code> read from your <code>.env</code>. Compose picks up a root <code>.env</code> automatically; <code>${POSTGRES_PASSWORD}</code> in the compose file is then substituted at parse time.</li>
+  <li>Persist data with a <b>named volume</b>, not a bind mount into the repo folder. A bind-mounted <code>postgres/data/</code> creates root-owned files inside your project that are painful to delete and easy to accidentally commit.</li>
+  <li>Add a healthcheck using <code>pg_isready</code>. Every later service will depend on this being healthy, and getting it right now saves you an entire class of race-condition bugs.</li>
+  <li>Write <code>postgres/init/01_schemas.sql</code> to create your schema layers. Files placed in <code>/docker-entrypoint-initdb.d/</code> run once, on first initialisation of an empty data directory.</li>
+  <li>Decide your layering and write it down in the README. A conventional choice: <code>raw</code> (exactly what arrived, never modified), <code>staging</code> (cleaned and typed), <code>marts</code> (business-ready). dbt will own staging and marts; the consumer owns raw.</li>
+  <li>Design the <code>raw.weather_observations</code> table. Think hard about these columns and be able to justify each: city, latitude, longitude, observed_at (<code>TIMESTAMPTZ</code>), temperature_c, wind_speed_kmh, weather_code, ingested_at, and the raw JSON payload.</li>
+  <li>Add a <b>unique constraint on (city, observed_at)</b>. This is the foundation of exactly-once semantics in Phase 4 — without it you cannot deduplicate on write.</li>
+</ol>
+
+<div class="box tip">
+  <span class="lbl">Design decision worth understanding</span>
+  <p>Store <code>observed_at</code> as <code>TIMESTAMPTZ</code>, always in UTC, and convert to
+  local time only at the presentation layer. Mixing naive local timestamps from five cities
+  into one column is a bug that will surface in Phase 8 as a model that mysteriously cannot
+  learn the daily temperature cycle. Keeping the original API JSON in a <code>JSONB</code>
+  column costs almost nothing and means a schema mistake today does not lose data forever.</p>
+</div>
+
+<h4>Anchor: the healthcheck shape</h4>
+<pre><code>healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+  interval: 5s
+  timeout: 5s
+  retries: 20
+  start_period: 10s</code></pre>
+<p>Note the doubled <code>$$</code> — that escapes the variable so Compose passes it through to
+be expanded inside the container rather than substituting it from your shell.</p>
+
+<h4>Verify</h4>
+<pre><code>docker compose up -d
+docker compose ps                      # postgres shows (healthy), not just running
+docker compose exec postgres psql -U $POSTGRES_USER -d $POSTGRES_DB -c '\dn'
+docker compose down && docker compose up -d   # data must survive this</code></pre>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li><code>docker compose up -d</code> gives a container reporting <b>healthy</b></li>
+    <li>Your schemas exist and the raw table has its unique constraint</li>
+    <li>Data survives <code>docker compose down</code> and back up</li>
+    <li>No credential appears anywhere in a tracked file</li>
+    <li>You can explain the difference between a named volume and a bind mount</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 2 ============================ -->
+<h2 class="phase" id="p2"><span class="phase-num">Phase 2</span>The source</h2>
+<p class="meta"><span><b>Goal:</b> fetch and normalise real weather data — no Kafka yet</span><span><b>Time:</b> 3–4 h</span><span><b>Branch:</b> <code>phase-2-source</code></span></p>
+
+<h4>You will learn</h4>
+<p>API contracts, defensive HTTP clients, retries with backoff, data normalisation, and why
+you always explore a source before you stream it.</p>
+
+<h4>Understand the source first</h4>
+<p>Open-Meteo is free, needs no key, and has three endpoints that matter to you. Spend twenty
+minutes in a browser or with <code>curl</code> before writing anything:</p>
+<table>
+  <tr><th>Endpoint</th><th>Gives you</th><th>Used in</th></tr>
+  <tr><td><code>api.open-meteo.com/v1/forecast</code></td><td><code>current</code> conditions and an hourly forecast</td><td>Phases 3–4 (live stream)</td></tr>
+  <tr><td><code>archive-api.open-meteo.com/v1/archive</code></td><td>ERA5 reanalysis — years of real hourly history</td><td><b>Phase 8 (training data)</b></td></tr>
+  <tr><td><code>geocoding-api.open-meteo.com</code></td><td>city name → coordinates</td><td>Optional, for configurable cities</td></tr>
+</table>
+
+<div class="box tip">
+  <span class="lbl">Plan ahead</span>
+  <p>The archive endpoint is the single most important thing on this page. A model trained on
+  the handful of days your pipeline has been running will be worthless. In Phase 8 you will
+  backfill <b>two or more years</b> of hourly history from the archive API and train on that.
+  Know now that it exists so you design your table to hold it.</p>
+</div>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Fetch one city by hand with <code>curl</code> and read the JSON properly. Identify: where the timestamp lives, what timezone it is in, what <code>utc_offset_seconds</code> means, and the units of each measure.</li>
+  <li>Understand WMO weather codes. The API returns an integer (0, 3, 61, 95…); you need a mapping to human labels. Write it as a module-level dictionary and handle unknown codes without crashing.</li>
+  <li>Write <code>ingestion/producer/weather_api.py</code>: a function that takes a city definition and returns a <b>normalised dictionary</b> — your own schema, not the API's. Decoupling your internal contract from the vendor's payload is the lesson here.</li>
+  <li>Make the HTTP client defensive: an explicit timeout, <code>raise_for_status()</code>, and retry with exponential backoff on 5xx and connection errors. A network call without a timeout will eventually hang your producer forever.</li>
+  <li>Define your cities in configuration, not in code — a YAML or JSON file listing name, latitude, longitude. Adding a sixth city must not require editing Python.</li>
+  <li>Write a throwaway script that fetches all cities and prints the normalised records. Confirm the numbers look like actual weather.</li>
+  <li>Add structured logging (the <code>logging</code> module, not <code>print</code>). Every long-running process in this project needs logs you can read at 2 a.m.</li>
+</ol>
+
+<div class="box warn">
+  <span class="lbl">Be a good citizen</span>
+  <p>Open-Meteo is free and rate-limited on trust. Poll no faster than every 5–10 minutes;
+  the underlying data only updates about every 15 minutes anyway, so a 10-second poll gives
+  you nothing but duplicate rows and a banned IP.</p>
+</div>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li>One function returns a clean, normalised record for any configured city</li>
+    <li>Cities live in a config file; adding one requires no code change</li>
+    <li>Timeouts and retries are in place and you have tested them (try a bad URL)</li>
+    <li>You can explain what the API returns in UTC versus local time</li>
+    <li>Logging is structured and useful</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 3 ============================ -->
+<h2 class="phase" id="p3"><span class="phase-num">Phase 3</span>The backbone — Kafka</h2>
+<p class="meta"><span><b>Goal:</b> weather records flowing into a Kafka topic, provably</span><span><b>Time:</b> 6–9 h</span><span><b>Branch:</b> <code>phase-3-kafka</code></span></p>
+
+<p class="lead">This is the phase people get wrong, and the phase that makes the project worth
+showing. Slow down here.</p>
+
+<h4>Concepts you must actually understand</h4>
+<table>
+  <tr><th>Term</th><th>What it means and why you care</th></tr>
+  <tr><td><b>Topic</b></td><td>A named, append-only log. Not a queue — messages are not removed when read.</td></tr>
+  <tr><td><b>Partition</b></td><td>The unit of parallelism and of ordering. Order is guaranteed <i>within</i> a partition only, never across partitions.</td></tr>
+  <tr><td><b>Message key</b></td><td>Determines the partition by hashing. Keying by city means all of one city's readings land in one partition and stay in order — which you want.</td></tr>
+  <tr><td><b>Offset</b></td><td>A message's position in a partition. Consumers track offsets; that is how they resume.</td></tr>
+  <tr><td><b>Consumer group</b></td><td>A set of consumers sharing the work. Each partition goes to exactly one member. More consumers than partitions means idle consumers.</td></tr>
+  <tr><td><b>Retention</b></td><td>How long messages live regardless of whether they were read. This is what makes replay possible.</td></tr>
+  <tr><td><b>KRaft</b></td><td>Kafka's built-in consensus, replacing ZooKeeper. Use it — ZooKeeper is removed in Kafka 4.x and any tutorial using it is dated.</td></tr>
+</table>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Add a Kafka broker to <code>docker-compose.yml</code> in <b>KRaft mode</b> (combined broker + controller, single node). Use a current image — Confluent's <code>cp-kafka</code> 7.6+ or <code>apache/kafka</code>.</li>
+  <li>Get the listener configuration right (see the anchor below). This is the number one reason Kafka-in-Docker tutorials fail.</li>
+  <li>Add a Kafka UI container (<code>provectuslabs/kafka-ui</code> or <code>redpanda-data/console</code>). Being able to <i>see</i> your topics, partitions, messages and consumer lag will save you hours and makes an excellent screenshot for your README.</li>
+  <li>Create the topic <code>weather.raw</code> explicitly — 3 partitions, replication factor 1 (single broker), retention 7 days. Do not rely on auto-creation; auto-created topics get default settings you did not choose.</li>
+  <li>Write the producer: loop over configured cities, fetch via your Phase 2 module, and produce one message per city per poll. <b>Key the message by city name.</b></li>
+  <li>Serialize to JSON with UTF-8 encoding. Include a schema version field in the payload — future you will change the shape and will want to know which version a message is.</li>
+  <li>Configure the producer for durability: <code>acks=all</code> and <code>enable.idempotence=true</code>. Understand what each protects against.</li>
+  <li>Handle delivery asynchronously with a delivery callback, and call <code>flush()</code> before exit. A producer that exits without flushing silently drops buffered messages.</li>
+  <li>Containerize the producer: a small <code>Dockerfile</code>, added to Compose, depending on Kafka being healthy, running its loop with a configurable interval.</li>
+  <li>Handle <code>SIGTERM</code> gracefully so <code>docker compose down</code> does not kill it mid-batch.</li>
+</ol>
+
+<h4>Anchor: the listener configuration</h4>
+<p>Kafka tells clients where to reach it via <i>advertised listeners</i>. A client inside the
+Docker network must be told a different address than one on your laptop. You need two:</p>
+<pre><code>KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1</code></pre>
+<p>Containers connect to <code>kafka:9092</code>. Your laptop connects to
+<code>localhost:29092</code> (mapped in <code>ports:</code>). On a single-node broker the
+replication-factor overrides are mandatory — internal topics default to 3 and the broker will
+refuse to start without them.</p>
+
+<div class="box trap">
+  <span class="lbl">Trap</span>
+  <p>If your producer connects but every send times out with "no broker available", it is
+  almost always advertised listeners: the client resolved the broker, asked it for metadata,
+  and got back an address it cannot reach. Read what the broker advertised in the Kafka UI and
+  ask yourself whether the client can resolve that hostname.</p>
+</div>
+
+<h4>Verify</h4>
+<pre><code># topic exists with the settings you chose
+docker compose exec kafka kafka-topics.sh --bootstrap-server kafka:9092 \
+    --describe --topic weather.raw
+
+# watch messages arrive live
+docker compose exec kafka kafka-console-consumer.sh --bootstrap-server kafka:9092 \
+    --topic weather.raw --from-beginning --property print.key=true</code></pre>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li><code>kafka-console-consumer</code> prints real weather JSON, keyed by city</li>
+    <li>The topic has exactly the partitions and retention you specified</li>
+    <li>The producer runs in a container, survives a broker restart, and reconnects</li>
+    <li>You can explain why messages are keyed by city and what breaks if they are not</li>
+    <li>You can explain the difference between <code>acks=1</code> and <code>acks=all</code></li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <span class="lbl">Self-test</span>
+  <ol>
+    <li>Your topic has 3 partitions and you run 5 consumers in one group. What are the other two doing?</li>
+    <li>You need strict global ordering of all weather events. What must the topic look like, and what do you give up?</li>
+    <li>A consumer was offline for a day. Does it lose the messages? What determines the answer?</li>
+  </ol>
+</div>
+
+<!-- ============================ PHASE 4 ============================ -->
+<h2 class="phase" id="p4"><span class="phase-num">Phase 4</span>The sink</h2>
+<p class="meta"><span><b>Goal:</b> every message durably in Postgres, exactly once, no duplicates</span><span><b>Time:</b> 6–9 h</span><span><b>Branch:</b> <code>phase-4-consumer</code></span></p>
+
+<h4>You will learn</h4>
+<p>Delivery semantics, offset management, idempotent writes, batching, dead-letter queues, and
+consumer lag — the concepts that separate someone who has read about Kafka from someone who has
+run it.</p>
+
+<h4>The central idea</h4>
+<p>Kafka gives you <b>at-least-once</b> delivery by default: if your consumer crashes after
+writing to Postgres but before committing its offset, it will re-read those messages on
+restart. You cannot prevent this. What you do instead is make the write <b>idempotent</b>, so
+processing the same message twice produces the same database state as processing it once.
+That is what your <code>(city, observed_at)</code> unique constraint from Phase 1 is for.</p>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Write <code>ingestion/consumer/</code>: subscribe to <code>weather.raw</code> with an explicit <code>group.id</code> and <code>auto.offset.reset=earliest</code>.</li>
+  <li>Turn <b>off</b> auto-commit (<code>enable.auto.commit=false</code>). Commit manually, <i>after</i> the database write succeeds. This ordering is the entire correctness argument — write it as a comment in your code so you remember why.</li>
+  <li>Implement the idempotent write: <code>INSERT ... ON CONFLICT (city, observed_at) DO UPDATE</code> (or <code>DO NOTHING</code>). Decide which you want and be able to justify it.</li>
+  <li>Batch: accumulate up to N messages or T seconds, then write them in one transaction and commit offsets once. Per-message commits will work at this volume and are the wrong habit.</li>
+  <li>Validate every message before writing. Missing field, wrong type, temperature of 900°C — reject it. Never let a malformed message reach your warehouse.</li>
+  <li>Add a dead-letter topic <code>weather.dlq</code>. A message that fails validation or repeatedly fails to write goes there with an error reason attached, and the consumer moves on. A consumer that crash-loops on one bad message is a stalled pipeline.</li>
+  <li>Handle Postgres being unavailable: retry with backoff, and <b>do not commit the offset</b>. When the database comes back, Kafka replays exactly what you missed. Test this by stopping the Postgres container while the consumer runs.</li>
+  <li>Containerize it and add it to Compose, depending on both Kafka and Postgres.</li>
+  <li>Log throughput and consumer lag periodically so you can see health at a glance.</li>
+</ol>
+
+<div class="box tip">
+  <span class="lbl">The test that proves you understand it</span>
+  <p>With everything running: <code>docker compose stop postgres</code>, wait five minutes,
+  then <code>docker compose start postgres</code>. Consumer lag should climb, then drain to
+  zero, and your row count should be exactly what it would have been with no outage — no gaps
+  and no duplicates. Screenshot the lag graph. That single screenshot demonstrates more
+  competence than the rest of the dashboard.</p>
+</div>
+
+<h4>Verify</h4>
+<pre><code>-- no duplicates, ever
+SELECT city, observed_at, COUNT(*) FROM raw.weather_observations
+GROUP BY 1,2 HAVING COUNT(*) > 1;        -- must return zero rows
+
+-- data is arriving continuously
+SELECT city, MAX(observed_at), COUNT(*) FROM raw.weather_observations GROUP BY 1;
+
+-- consumer lag
+docker compose exec kafka kafka-consumer-groups.sh --bootstrap-server kafka:9092 \
+    --describe --group weather-sink</code></pre>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li>The duplicate query returns zero rows after a deliberate consumer restart</li>
+    <li>Killing Postgres for five minutes loses no data</li>
+    <li>A deliberately malformed message lands in the DLQ and does not stop the consumer</li>
+    <li>Offsets are committed only after a successful write, and you can explain why</li>
+    <li>You can define at-most-once, at-least-once and exactly-once, and say which you have</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 5 ============================ -->
+<h2 class="phase" id="p5"><span class="phase-num">Phase 5</span>Transformation with dbt</h2>
+<p class="meta"><span><b>Goal:</b> tested, documented, layered models built from raw</span><span><b>Time:</b> 8–12 h</span><span><b>Branch:</b> <code>phase-5-dbt</code></span></p>
+
+<h4>You will learn</h4>
+<p>Analytics engineering: sources, refs and the DAG, materializations, incremental models,
+data tests, and documentation as code.</p>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Initialise a dbt project in <code>dbt/</code> targeting Postgres. Delete every piece of starter scaffolding you are not using — leftover example models and template comments in <code>dbt_project.yml</code> are the clearest sign of a copied project.</li>
+  <li>Configure <code>profiles.yml</code> to read credentials from environment variables with <code>{{ env_var('POSTGRES_PASSWORD') }}</code>. Never hardcode.</li>
+  <li>Declare your source in <code>models/sources.yml</code> pointing at <code>raw.weather_observations</code>, and add a <code>freshness</code> block — <code>warn_after: 1 hour</code>, <code>error_after: 3 hours</code>. Then <code>dbt source freshness</code> becomes a real pipeline health check.</li>
+  <li>Build the staging layer: cast types, rename to your naming convention, convert units if needed, map weather codes to labels, and deduplicate defensively. One staging model per source table, materialized as a view.</li>
+  <li>Build the marts. At minimum: <code>fct_observations</code> (one row per city per hour, dashboard-ready), <code>agg_daily_weather</code> (daily min/max/avg per city), and <code>dim_cities</code>. Materialize marts as tables.</li>
+  <li>Make <code>fct_observations</code> <b>incremental</b>. This is the most valuable dbt skill in the project. Use <code>materialized='incremental'</code>, a <code>unique_key</code>, and an <code>{% if is_incremental() %}</code> filter that only scans recent rows. Understand why full refreshes every five minutes do not scale.</li>
+  <li>Add tests generously: <code>not_null</code> and <code>unique</code> on keys, <code>accepted_values</code> on the weather-condition label, <code>relationships</code> from fact to dimension, and at least one custom singular test in <code>tests/</code> (for example, temperature within physically plausible bounds).</li>
+  <li>Document every model and column in the schema YAML. Run <code>dbt docs generate</code> and browse the lineage graph — screenshot it for your README.</li>
+  <li>Run dbt in a container so it works identically from Airflow in Phase 6.</li>
+</ol>
+
+<div class="box trap">
+  <span class="lbl">Trap</span>
+  <p>Setting <code>unique_key</code> on a model materialized as <code>table</code> does
+  nothing at all — it is only meaningful for <code>incremental</code> (and snapshots). Seeing
+  <code>materialized='table'</code> next to <code>unique_key</code> is a classic
+  copied-from-a-tutorial tell. Know which config belongs to which materialization.</p>
+</div>
+
+<div class="box tip">
+  <span class="lbl">Think about it</span>
+  <p>Your incremental filter needs care. Filtering on <code>observed_at &gt; (SELECT
+  MAX(observed_at) FROM {{ this }})</code> silently drops late-arriving data. A safer pattern
+  is a lookback window — reprocess the last few hours every run and let <code>unique_key</code>
+  handle the overlap. Late data is a real phenomenon in streaming, and handling it is a
+  senior-level detail worth being able to discuss.</p>
+</div>
+
+<h4>Verify</h4>
+<pre><code>dbt debug            # connection works
+dbt build            # runs models AND tests together — all green
+dbt source freshness # source is fresh
+dbt docs generate    # lineage graph renders</code></pre>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li><code>dbt build</code> passes with zero failures and at least ten tests</li>
+    <li><code>fct_observations</code> is genuinely incremental — verified by a log line showing rows scanned</li>
+    <li>Every model and column has a description</li>
+    <li>No credentials in any dbt file</li>
+    <li>You can explain view vs table vs incremental and when to use each</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 6 ============================ -->
+<h2 class="phase" id="p6"><span class="phase-num">Phase 6</span>Orchestration with Airflow</h2>
+<p class="meta"><span><b>Goal:</b> scheduled, retryable, observable pipeline runs</span><span><b>Time:</b> 8–12 h</span><span><b>Branch:</b> <code>phase-6-airflow</code></span></p>
+
+<h4>The mental model</h4>
+<p>Your producer and consumer are <b>continuous</b> processes — they are not Airflow's job and
+must not be put in a DAG. Airflow owns everything <b>periodic</b>: running dbt, checking data
+quality, retraining the model in Phase 8, and alerting when something breaks. Getting this
+boundary right is a design judgement interviewers probe for.</p>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Add Airflow to Compose. For a single-machine project, <code>LocalExecutor</code> with a Postgres metadata database is the right choice — <code>CeleryExecutor</code> adds a broker and workers you do not need.</li>
+  <li>Give Airflow its <b>own database</b> (or at least its own schema) in Postgres, separate from your warehouse data. Mixing application metadata with analytics data is a smell.</li>
+  <li>Get the metadata connection variable name right — see the trap below. Then run <code>airflow db migrate</code> before starting the scheduler.</li>
+  <li>Do not use <code>airflow standalone</code>. It is a development convenience that generates a random admin password to a file and runs everything in one process. Define the API server / webserver and scheduler as separate Compose services and create the admin user explicitly.</li>
+  <li>Write your first DAG: run dbt on a schedule. Set <code>catchup=False</code> <b>as a DAG argument</b> and give tasks <code>retries</code> and <code>retry_delay</code> in <code>default_args</code>.</li>
+  <li>Choose how to invoke dbt and justify it. Options: <code>BashOperator</code> with dbt installed in the image (simple, couples dependencies), <code>DockerOperator</code> against the dbt image (clean isolation, needs the Docker socket mounted — a real security consideration you should be able to discuss), or Cosmos (turns each dbt model into its own Airflow task; the most impressive and the most moving parts).</li>
+  <li>Add a data-quality DAG: check source freshness, verify no duplicates, verify every city reported in the last hour. Fail loudly when it does not.</li>
+  <li>Add a sensor or short-circuit so transformations do not run when there is no new data to transform.</li>
+  <li>Configure failure notification — at minimum an <code>on_failure_callback</code> that logs distinctly; a Slack or email hook if you want the extra credit.</li>
+  <li>Store Postgres credentials as an Airflow <b>Connection</b>, not as literals in DAG code.</li>
+</ol>
+
+<div class="box trap">
+  <span class="lbl">Trap that costs people a full day</span>
+  <p>The metadata database variable is <code>AIRFLOW__DATABASE__SQL_ALCHEMY_CONN</code>. The
+  old <code>AIRFLOW__CORE__SQL_ALCHEMY_CONN</code> moved to the <code>[database]</code> section
+  in Airflow 2.3 and no longer works in Airflow 3 — it is silently ignored, Airflow falls back
+  to SQLite inside the container, everything appears to work, and then all your DAG history
+  vanishes when the container restarts. If <code>airflow db check</code> does not report your
+  Postgres, you have this bug.</p>
+</div>
+
+<div class="box trap">
+  <span class="lbl">Trap</span>
+  <p><code>default_args</code> are passed to <b>operators</b>, not to the DAG. Putting
+  <code>catchup</code>, <code>description</code> or <code>schedule</code> in there does
+  nothing. With a <code>start_date</code> months in the past and a five-minute schedule, an
+  unintended catchup means tens of thousands of queued runs.</p>
+</div>
+
+<h4>Verify</h4>
+<pre><code>docker compose exec airflow-scheduler airflow db check     # points at Postgres
+docker compose exec airflow-scheduler airflow dags list
+docker compose exec airflow-scheduler airflow dags test &lt;dag_id&gt; 2026-01-01
+# then in the UI: trigger it, watch it succeed, break dbt on purpose, watch it retry</code></pre>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li>Airflow metadata lives in Postgres and survives a full restart</li>
+    <li>At least two DAGs: transformation and data quality</li>
+    <li>You have deliberately broken a task and watched retries then failure notification</li>
+    <li>No secrets in DAG files — connections are used</li>
+    <li>You can explain why the Kafka consumer is not an Airflow task</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 7 ============================ -->
+<h2 class="phase" id="p7"><span class="phase-num">Phase 7</span>Visualization with Superset</h2>
+<p class="meta"><span><b>Goal:</b> a dashboard that reproduces itself from version control</span><span><b>Time:</b> 5–8 h</span><span><b>Branch:</b> <code>phase-7-superset</code></span></p>
+
+<h4>Tasks</h4>
+<ol>
+  <li>Add Superset to Compose with its own metadata database and a Redis cache. Set a real <code>SUPERSET_SECRET_KEY</code> from your <code>.env</code> — the default is a known public value.</li>
+  <li>Initialise it properly: <code>superset db upgrade</code>, create the admin user, <code>superset init</code>. Do this in a one-shot init service so a fresh clone works without manual steps.</li>
+  <li>Connect Superset to your warehouse and register your dbt marts as datasets. Point charts at <b>marts</b>, never at raw tables — that boundary is the reason the marts layer exists.</li>
+  <li>Build the dashboard. Aim for six charts that answer real questions, not six charts that fill space:
+    <ul>
+      <li>current temperature and wind, as big-number KPIs with a trend sparkline</li>
+      <li>24-hour temperature trend, one line per city</li>
+      <li>temperature comparison across cities</li>
+      <li>distribution of weather conditions</li>
+      <li>latest observations table</li>
+      <li>(after Phase 8) <b>forecast versus actual</b> — the centrepiece</li>
+    </ul>
+  </li>
+  <li>Enable auto-refresh so the dashboard visibly updates while someone is watching it. For a project called "real-time", this matters.</li>
+  <li><b>Export the dashboard as YAML and commit it.</b> Then wire the import into your init service so a fresh <code>docker compose up</code> produces the dashboard with no clicking. This is what makes it reproducible infrastructure rather than a manual artifact.</li>
+  <li>Test the reproducibility claim honestly: <code>docker compose down -v</code>, then <code>up</code>, and confirm the dashboard is there.</li>
+</ol>
+
+<div class="box warn">
+  <span class="lbl">Development mode is not production</span>
+  <p>Most Superset compose examples run <code>flask run --reload --debugger</code> with
+  <code>FLASK_DEBUG=true</code> and admin/admin. That is a development server with a remote
+  debugger exposed. Fine for local work — but say so in your README, and know that
+  <code>gunicorn</code>, a strong secret key and a real password are what production needs.
+  Knowing the difference is the point.</p>
+</div>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li><code>docker compose down -v &amp;&amp; docker compose up -d</code> recreates the dashboard automatically</li>
+    <li>Dashboard assets are committed as YAML</li>
+    <li>Charts read from marts only</li>
+    <li>Auto-refresh works and the data visibly moves</li>
+    <li>The secret key and admin password come from environment variables</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 8 ============================ -->
+<h2 class="phase" id="p8"><span class="phase-num">Phase 8</span>Forecasting — your signature addition</h2>
+<p class="meta"><span><b>Goal:</b> a model that predicts the next 24 hours and beats a real baseline</span><span><b>Time:</b> 12–20 h</span><span><b>Branch:</b> <code>phase-8-forecast</code></span></p>
+
+<p class="lead">This phase is what makes the project yours rather than another Airflow-plus-dbt
+demo. It is also where most people quietly cheat — by evaluating wrongly, or by never
+comparing against a baseline. Do it properly and it becomes the strongest thing on your CV.</p>
+
+<h4>Step 1 — Get real training data</h4>
+<p>Your pipeline has, at best, days of history. A temperature model needs to see full daily
+cycles and seasonal variation. Backfill from the Open-Meteo <b>archive</b> endpoint:</p>
+<ul>
+  <li>Pull at least <b>two years</b> of hourly history per city — roughly 17,500 rows per city, 87,000 rows total. Trivial for Postgres and enough to learn daily and seasonal structure.</li>
+  <li>Write it through a one-off backfill script into <code>raw.weather_observations</code>, reusing your normalisation so the schema matches exactly.</li>
+  <li>Mark backfilled rows with a <code>source</code> column (<code>'archive'</code> vs <code>'stream'</code>). You will want to distinguish them later, and honest data lineage matters.</li>
+</ul>
+
+<h4>Step 2 — Establish baselines before any model</h4>
+<p>A forecast is only meaningful relative to something trivial. Implement two and record their
+error:</p>
+<table>
+  <tr><th>Baseline</th><th>Prediction for time t+h</th><th>Why it matters</th></tr>
+  <tr><td><b>Persistence</b></td><td>the temperature at time t</td><td>Astonishingly hard to beat at 1–3 hours ahead</td></tr>
+  <tr><td><b>Seasonal naive</b></td><td>the temperature at t+h minus 24 hours</td><td>Captures the daily cycle for free; the real bar to clear at 24h</td></tr>
+  <tr><td><b>Climatology</b></td><td>the historical mean for that city, month and hour</td><td>The long-horizon floor</td></tr>
+</table>
+<div class="box warn">
+  <span class="lbl">The honesty rule</span>
+  <p>If your fancy model does not beat seasonal naive, <b>you do not have a model, you have a
+  slow way of being wrong.</b> Report this if it happens — an engineer who measures and reports
+  a negative result is far more employable than one who reports an unverifiable win.</p>
+</div>
+
+<h4>Step 3 — Frame the problem</h4>
+<ul>
+  <li><b>Target:</b> temperature in °C. <b>Horizon:</b> 24 hours ahead, hourly. <b>Granularity:</b> per city.</li>
+  <li>Decide between <b>direct</b> multi-horizon (24 models, one per lead time) and <b>recursive</b> (one model applied iteratively, feeding its own predictions back in). Direct is more robust — recursive compounds its own errors. Know the trade-off.</li>
+  <li>Handle gaps explicitly. A missing hour is not zero. Reindex to a complete hourly grid per city and decide, deliberately, whether to interpolate short gaps and drop long ones.</li>
+</ul>
+
+<h4>Step 4 — Features</h4>
+<ul>
+  <li><b>Lags</b> of temperature: t-1, t-2, t-3, t-24, t-48, t-168 (one week).</li>
+  <li><b>Rolling statistics</b>: mean, min, max, standard deviation over 3, 24 and 168 hour windows.</li>
+  <li><b>Cyclical time encoding</b>: hour-of-day and day-of-year as <code>sin</code>/<code>cos</code> pairs. Encoding hour as the integer 0–23 tells the model that 23:00 and 00:00 are 23 units apart, which is false and hurts.</li>
+  <li><b>Other measures</b>: wind speed and weather code, lagged the same way.</li>
+  <li><b>City</b> as a categorical feature if you train one shared model.</li>
+</ul>
+
+<div class="box trap">
+  <span class="lbl">Leakage — read this twice</span>
+  <p>Every feature must be computable at prediction time using <b>only past data</b>. Two ways
+  this project invites you to cheat: (1) a rolling window that includes the current row, and
+  (2) using Open-Meteo's own forecast fields as inputs. The second is the subtle one — the API
+  will happily hand you the future, and a model fed the answer will look brilliant and be
+  worthless. Use the API's forecast as a <i>benchmark to compare against</i>, never as a
+  feature. That comparison, incidentally, is a great section for your README.</p>
+</div>
+
+<h4>Step 5 — Evaluate correctly</h4>
+<div class="box trap">
+  <span class="lbl">The mistake that invalidates everything</span>
+  <p><b>Never use a random train/test split on time series.</b> Randomly holding out rows lets
+  the model train on Tuesday and Thursday to predict Wednesday — information it will never have
+  in production. Your error will look excellent and mean nothing. Split chronologically,
+  always.</p>
+</div>
+<ul>
+  <li>Use <b>walk-forward (expanding-window) backtesting</b>: train on everything up to time T, predict the next 24 hours, roll T forward, repeat across many origins. Average the errors.</li>
+  <li>Report <b>MAE</b> and <b>RMSE</b> in °C, broken down <i>by lead time</i> — error at hour 1 and hour 24 are completely different quantities and a single number hides that. Avoid MAPE: temperatures near 0°C make it explode.</li>
+  <li>Plot predicted versus actual for a held-out week. Your eyes will catch systematic problems no metric will.</li>
+  <li>Put the comparison table — baselines versus your model versus Open-Meteo's own forecast — directly in your README.</li>
+</ul>
+
+<h4>Step 6 — Choose a model</h4>
+<table>
+  <tr><th>Approach</th><th>Verdict</th></tr>
+  <tr><td><b>SARIMA</b> (statsmodels)</td><td>Classical, interpretable, per-city. Great for the write-up because it forces you to understand seasonality and stationarity. Slow to fit, awkward with exogenous features.</td></tr>
+  <tr><td><b>Holt-Winters</b></td><td>Simplest thing that models level, trend and seasonality. Worth ten minutes as a second baseline.</td></tr>
+  <tr><td><b>Gradient boosting on lag features</b><br>(LightGBM / <code>HistGradientBoostingRegressor</code>)</td><td><b>Recommended.</b> Handles multiple cities and exogenous features in one model, trains in seconds, and is what most companies actually ship. All the intellectual work is in your feature engineering, which is where it should be.</td></tr>
+  <tr><td><b>Prophet</b></td><td>Easy and readable output, decent at daily/seasonal structure. Heavy dependency and rarely the best performer.</td></tr>
+  <tr><td><b>LSTM / GRU</b></td><td>Only after the above work. With 87k rows it will probably lose to gradient boosting. Worth doing as a deliberate experiment you then report honestly.</td></tr>
+</table>
+
+<h4>Step 7 — Serve the predictions</h4>
+<ol>
+  <li>Create <code>marts.weather_forecast</code>: city, forecast_made_at, target_time, horizon_hours, predicted_temp_c, model_version. Storing <code>forecast_made_at</code> is what later lets you measure how good your forecasts actually were.</li>
+  <li>Write an inference script that loads the trained model, builds features for the latest data, predicts the next 24 hours per city, and upserts into that table.</li>
+  <li>Add two Airflow DAGs: <b>inference</b> hourly, and <b>retraining</b> weekly. Version each model artifact and never overwrite the previous one.</li>
+  <li>Build a <b>forecast accuracy</b> model in dbt that joins past forecasts to what actually happened, and chart rolling MAE by lead time in Superset. This closes the loop and is genuinely rare in portfolio projects.</li>
+  <li>Add a drift check: if rolling MAE degrades beyond a threshold, fail the DAG loudly.</li>
+</ol>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li>Two or more years of history backfilled from the archive API</li>
+    <li>Three baselines implemented and their errors recorded</li>
+    <li>Walk-forward backtest, with MAE and RMSE reported per lead time</li>
+    <li>Your model beats seasonal naive at 24 hours — or you say clearly that it does not</li>
+    <li>Forecasts are written to a table and charted against actuals in Superset</li>
+    <li>Airflow retrains on a schedule and monitors accuracy drift</li>
+    <li>You can explain, without notes, why random splits are invalid here</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 9 ============================ -->
+<h2 class="phase" id="p9"><span class="phase-num">Phase 9</span>Hardening</h2>
+<p class="meta"><span><b>Goal:</b> the parts that separate a demo from an engineered system</span><span><b>Time:</b> 5–8 h</span><span><b>Branch:</b> <code>phase-9-hardening</code></span></p>
+
+<h4>Tasks</h4>
+<ol>
+  <li><b>Unit tests</b> with pytest: normalisation logic, weather-code mapping, feature engineering, validation rules. Mock the HTTP calls — a test that hits the real API is not a unit test and will fail on a train.</li>
+  <li><b>Integration test</b>: spin up Kafka and Postgres, produce a known message, assert it lands correctly in the database. <code>testcontainers</code> makes this straightforward.</li>
+  <li><b>CI</b> in <code>.github/workflows/</code>: on every push, run linting (<code>ruff</code>), formatting checks, pytest, and <code>dbt parse</code>/<code>dbt compile</code>. A green badge on your README is worth real points.</li>
+  <li><b>Pre-commit hooks</b>: ruff, trailing whitespace, and a secret scanner (<code>detect-secrets</code> or <code>gitleaks</code>).</li>
+  <li><b>Structured JSON logging</b> across all services with consistent fields.</li>
+  <li><b>Health endpoints or heartbeats</b> for the producer and consumer, so "is it running" is answerable without reading logs.</li>
+  <li><b>Resource limits</b> in Compose (<code>mem_limit</code>) so one runaway container cannot take down your laptop.</li>
+  <li><b>A Makefile</b>: <code>make up</code>, <code>make down</code>, <code>make test</code>, <code>make logs</code>, <code>make reset</code>. Small, and it signals care.</li>
+  <li><b>Document failure modes</b> in the README: what happens when the API is down, Kafka is down, Postgres is down, the model is stale. Being able to answer this is a senior trait.</li>
+</ol>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li>CI runs on every push and is green</li>
+    <li>Test coverage on the logic that matters (not a coverage percentage — the right tests)</li>
+    <li>Pre-commit blocks a deliberately committed fake secret</li>
+    <li>A failure-modes section exists in the README</li>
+  </ul>
+</div>
+
+<!-- ============================ PHASE 10 ============================ -->
+<h2 class="phase" id="p10"><span class="phase-num">Phase 10</span>Shipping it</h2>
+<p class="meta"><span><b>Goal:</b> someone can understand and run this without you in the room</span><span><b>Time:</b> 3–4 h</span><span><b>Branch:</b> <code>phase-10-docs</code></span></p>
+
+<h4>Tasks</h4>
+<ol>
+  <li><b>Rewrite the README from scratch</b>, now that you know what you built. Structure: one-line description, architecture diagram, screenshots, quick start, what each component does, the forecast accuracy table, failure modes, what you would do differently, and what you would change to scale it.</li>
+  <li><b>Draw a real architecture diagram</b> (Excalidraw, draw.io, Mermaid). Export a PNG and commit it.</li>
+  <li><b>Screenshots</b>: the Superset dashboard, the Airflow DAG graph, the Kafka UI showing lag draining, the dbt lineage graph. Four images that prove every layer works.</li>
+  <li><b>A short demo GIF or video</b> — <code>docker compose up</code> to live dashboard. This gets watched when a README does not get read.</li>
+  <li><b>Test the cold start yourself</b>: clone into a fresh directory, copy <code>.env.example</code> to <code>.env</code>, run one command, and follow your own instructions literally. Every friction point you hit, a recruiter hits too.</li>
+  <li><b>Add a LICENSE</b> (MIT is fine).</li>
+  <li><b>Write the "what I would do differently" section.</b> Honest limitations — single broker, no schema registry, dev-mode Superset, small training set — read as maturity, not weakness.</li>
+  <li><b>Write it up</b> as a blog post or a long LinkedIn post. Explaining it publicly is the final compression step that turns "I built this" into "I understand this".</li>
+</ol>
+
+<div class="box tip">
+  <span class="lbl">How to claim it honestly</span>
+  <p>You built it: you wrote the code, made the design decisions, and can defend them. Guidance
+  is not authorship — every engineer works from documentation, blog posts and colleagues. What
+  makes it yours is that the commit history is real, you hit the bugs, you fixed them, and you
+  can be dropped into any file and explain what it does and why. That is the standard. Meet it
+  and say so without hedging.</p>
+</div>
+
+<div class="done">
+  <span class="lbl">Definition of done</span>
+  <ul>
+    <li>A stranger goes from clone to live dashboard using only your README</li>
+    <li>Architecture diagram and four screenshots committed</li>
+    <li>Forecast accuracy table published with real numbers</li>
+    <li>Limitations documented honestly</li>
+    <li>Every box in the build log is ticked</li>
+  </ul>
+</div>
+
+<!-- ============================ APPENDIX A ============================ -->
+<h2 class="phase" id="appA"><span class="phase-num">Appendix A</span>Concept glossary</h2>
+<table>
+  <tr><th>Term</th><th>Meaning</th></tr>
+  <tr><td><b>Idempotent</b></td><td>Doing it twice has the same effect as doing it once. The core defence against at-least-once delivery.</td></tr>
+  <tr><td><b>At-least-once</b></td><td>Every message is delivered, possibly more than once. Kafka's practical default.</td></tr>
+  <tr><td><b>Exactly-once</b></td><td>Every message has effect precisely once. Achieved end-to-end in this project by combining at-least-once delivery with idempotent writes.</td></tr>
+  <tr><td><b>Consumer lag</b></td><td>Messages produced minus messages consumed. The single most important streaming health metric.</td></tr>
+  <tr><td><b>Backpressure</b></td><td>What happens when a downstream stage cannot keep up. Kafka absorbs it in the log rather than dropping data.</td></tr>
+  <tr><td><b>Dead-letter queue</b></td><td>Where unprocessable messages go so one bad record cannot stall the pipeline.</td></tr>
+  <tr><td><b>Medallion / layering</b></td><td>raw → staging → marts. Each layer has one job and one owner.</td></tr>
+  <tr><td><b>Slowly changing dimension</b></td><td>A dimension whose attributes change over time; dbt snapshots capture the history.</td></tr>
+  <tr><td><b>Idempotent DAG</b></td><td>An Airflow run that produces the same result if re-run for the same interval. Required for retries to be safe.</td></tr>
+  <tr><td><b>Backfill</b></td><td>Running a pipeline over historical periods it never ran for.</td></tr>
+  <tr><td><b>Data leakage</b></td><td>Training on information unavailable at prediction time. Silently inflates every metric.</td></tr>
+  <tr><td><b>Walk-forward validation</b></td><td>Chronological backtesting with an expanding training window. The only honest evaluation for forecasting.</td></tr>
+  <tr><td><b>Horizon / lead time</b></td><td>How far ahead a prediction reaches. Error grows with it, so always report per horizon.</td></tr>
+  <tr><td><b>Model drift</b></td><td>Accuracy decaying as the world changes. Detected by tracking error over time, which is why you store forecasts.</td></tr>
+</table>
+
+<!-- ============================ APPENDIX B ============================ -->
+<h2 class="phase" id="appB"><span class="phase-num">Appendix B</span>Traps that break this exact project</h2>
+<p>Every one of these has been observed in real implementations of this pipeline. Read this
+page before starting the phase it belongs to, and again when something inexplicable happens.</p>
+
+<table>
+  <tr><th>Phase</th><th>Trap</th></tr>
+  <tr><td>0</td><td>Committing a real <code>.env</code>. It stays in history forever; the credential must be rotated.</td></tr>
+  <tr><td>1</td><td>Bind-mounting Postgres data into the repo. Root-owned files you cannot delete and might commit. Use a named volume.</td></tr>
+  <tr><td>1</td><td>No healthcheck, so dependent services start before Postgres accepts connections and fail with a confusing error.</td></tr>
+  <tr><td>2</td><td>HTTP calls with no timeout. The producer hangs forever with no error and no data.</td></tr>
+  <tr><td>2</td><td>Storing naive local timestamps. Breaks cross-city comparison and quietly ruins Phase 8.</td></tr>
+  <tr><td>3</td><td><b>Advertised listeners.</b> Wrong values mean clients connect and then time out. Cause of most Kafka-in-Docker failures.</td></tr>
+  <tr><td>3</td><td>Single-node broker without <code>OFFSETS_TOPIC_REPLICATION_FACTOR=1</code> — the broker refuses to start.</td></tr>
+  <tr><td>3</td><td>Producer exits without <code>flush()</code>. Buffered messages vanish silently.</td></tr>
+  <tr><td>3</td><td>Relying on topic auto-creation, then wondering why you have one partition and infinite retention.</td></tr>
+  <tr><td>4</td><td>Auto-commit left on. Offsets commit before the write succeeds; a crash means permanent data loss.</td></tr>
+  <tr><td>4</td><td>Committing offsets when the database write failed. Same outcome, but you did it deliberately.</td></tr>
+  <tr><td>4</td><td>No unique constraint, so a replay duplicates rows and every aggregate is silently wrong.</td></tr>
+  <tr><td>4</td><td>No DLQ — one malformed message crash-loops the consumer and the pipeline stops.</td></tr>
+  <tr><td>5</td><td><code>unique_key</code> on a <code>table</code> materialization. Does nothing; a copied-tutorial tell.</td></tr>
+  <tr><td>5</td><td>Full table rebuilds every five minutes. Works at five cities, absurd at scale, and interviewers ask.</td></tr>
+  <tr><td>5</td><td>Column names in <code>sources.yml</code> that do not match reality (<code>weather_descriptions</code> vs <code>weather_description</code>). Silent until a test needs it.</td></tr>
+  <tr><td>5</td><td>Leaving dbt starter scaffolding in <code>dbt_project.yml</code> and the generated README.</td></tr>
+  <tr><td>6</td><td><code>AIRFLOW__CORE__SQL_ALCHEMY_CONN</code> instead of <code>AIRFLOW__DATABASE__SQL_ALCHEMY_CONN</code>. Silently falls back to SQLite.</td></tr>
+  <tr><td>6</td><td><code>catchup</code> inside <code>default_args</code>, where it has no effect. Risk of tens of thousands of backfill runs.</td></tr>
+  <tr><td>6</td><td><code>airflow standalone</code> in a compose file presented as a deployment. It is a dev tool.</td></tr>
+  <tr><td>6</td><td>Mounting <code>/var/run/docker.sock</code> without acknowledging it grants effective host root.</td></tr>
+  <tr><td>6</td><td>No <code>retries</code> in <code>default_args</code>, so one transient network blip is a hard failure.</td></tr>
+  <tr><td>7</td><td>Default <code>SUPERSET_SECRET_KEY</code>. It is public and it signs session cookies.</td></tr>
+  <tr><td>7</td><td>Charts built by clicking and never exported. The dashboard is not reproducible and dies with the volume.</td></tr>
+  <tr><td>7</td><td>Charts pointed at raw tables, bypassing the modelling layer entirely.</td></tr>
+  <tr><td>8</td><td><b>Random train/test split.</b> Invalidates every number you report.</td></tr>
+  <tr><td>8</td><td>Training on a few days of streamed data instead of backfilled history.</td></tr>
+  <tr><td>8</td><td>Feeding the API's own forecast into the model. Looks brilliant, predicts nothing.</td></tr>
+  <tr><td>8</td><td>Rolling windows that include the current row. Subtle, common, fatal.</td></tr>
+  <tr><td>8</td><td>Reporting one error number across all horizons, hiding that hour 24 is far worse than hour 1.</td></tr>
+  <tr><td>8</td><td>No baseline comparison, so "MAE 1.8°C" means nothing to anyone.</td></tr>
+  <tr><td>9</td><td>Tests that call the live API. Slow, flaky, and useless offline.</td></tr>
+  <tr><td>10</td><td>A README whose quick start you never actually followed on a clean clone.</td></tr>
+</table>
+
+<!-- ============================ APPENDIX C ============================ -->
+<h2 class="phase" id="appC"><span class="phase-num">Appendix C</span>Interview questions to test yourself</h2>
+<p>Answer these out loud, from memory, without opening the code. If you stumble, that part is
+not yet yours.</p>
+
+<h4>Architecture</h4>
+<ol>
+  <li>Walk me through your pipeline end to end in two minutes.</li>
+  <li>Why Kafka? What would you use instead for five cities, and why did you still choose Kafka?</li>
+  <li>What happens if Postgres is down for an hour? For a week?</li>
+  <li>What changes if you go from 5 cities to 50,000 sensors reporting every second?</li>
+  <li>Which component is your single point of failure and how would you remove it?</li>
+</ol>
+
+<h4>Streaming</h4>
+<ol start="6">
+  <li>Explain partitions, keys and ordering guarantees.</li>
+  <li>How do you achieve effectively-exactly-once here? Where precisely does that guarantee live?</li>
+  <li>Your consumer lag is growing steadily. Walk me through your diagnosis.</li>
+  <li>Why do you commit offsets after the write rather than before?</li>
+  <li>What is in your dead-letter queue, and who looks at it?</li>
+</ol>
+
+<h4>Modelling and orchestration</h4>
+<ol start="11">
+  <li>Why layer raw, staging and marts? What breaks if you skip staging?</li>
+  <li>How does your incremental model handle late-arriving data?</li>
+  <li>Which dbt tests do you have and which real bug would each have caught?</li>
+  <li>Why is the Kafka consumer not an Airflow task?</li>
+  <li>What makes an Airflow task safe to retry, and is yours?</li>
+</ol>
+
+<h4>Machine learning</h4>
+<ol start="16">
+  <li>Why can you not use a random train/test split?</li>
+  <li>What is your baseline and by how much do you beat it at 1 hour and at 24 hours?</li>
+  <li>Name three ways this project could leak future information into training.</li>
+  <li>Why sin/cos encoding for hour of day?</li>
+  <li>Direct versus recursive multi-step forecasting — which did you choose and why?</li>
+  <li>How would you know your model has degraded in production, and what happens then?</li>
+</ol>
+
+<!-- ============================ APPENDIX D ============================ -->
+<h2 class="phase" id="appD"><span class="phase-num">Appendix D</span>Stretch goals once it works</h2>
+<p>Only after every phase is done. Each of these is a weekend and each meaningfully raises the
+ceiling of the project.</p>
+<table>
+  <tr><th>Addition</th><th>What it demonstrates</th></tr>
+  <tr><td><b>Schema Registry + Avro</b></td><td>Schema evolution and contract enforcement between producer and consumer — the thing every real Kafka deployment has and every tutorial omits.</td></tr>
+  <tr><td><b>Kafka Streams or Flink</b></td><td>Real stream processing: windowed aggregations and alerting computed in flight rather than in the warehouse.</td></tr>
+  <tr><td><b>Great Expectations or Soda</b></td><td>Data quality as a first-class, reported, versioned concern beyond dbt tests.</td></tr>
+  <tr><td><b>MLflow</b></td><td>Experiment tracking and a model registry — proper ML lifecycle management rather than pickles in a folder.</td></tr>
+  <tr><td><b>FastAPI serving layer</b></td><td>Exposing forecasts over HTTP; turns the platform into a product with an API.</td></tr>
+  <tr><td><b>Prometheus + Grafana</b></td><td>Real observability: consumer lag, throughput and freshness as time series with alerts.</td></tr>
+  <tr><td><b>Terraform + a cloud deployment</b></td><td>Infrastructure as code and the ability to hand someone a live URL.</td></tr>
+  <tr><td><b>Anomaly detection</b></td><td>Flagging observations that deviate sharply from forecast — a genuinely useful feature built on what you already have.</td></tr>
+  <tr><td><b>Alerting DAG</b></td><td>Notify when a city stops reporting, freshness breaches, or forecast error spikes.</td></tr>
+</table>
+
+<div class="box tip" style="margin-top:8mm">
+  <span class="lbl">Last word</span>
+  <p>The single most valuable thing in this entire guide is the habit of not moving on until
+  the current layer genuinely works and you can explain it. Everything else — Kafka, dbt,
+  Airflow, the model — is a specific technology that will be replaced within a decade. That
+  habit will not be.</p>
+</div>
+
+</body>
+</html>

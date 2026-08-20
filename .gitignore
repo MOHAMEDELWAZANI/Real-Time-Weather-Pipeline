@@ -1,0 +1,41 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Secrets: never commit real credentials ---
+.env
+.env.local
+*.env
+!.env.example
+
+# --- Docker / service state (bind-mounted data must stay out of git) ---
+postgres/data/
+kafka/data/
+volumes/
+
+# --- dbt ---
+dbt/**/target/
+dbt/**/dbt_packages/
+dbt/**/logs/
+.user.yml
+
+# --- Airflow ---
+airflow/logs/
+airflow/airflow.db
+airflow/standalone_admin_password.txt
+
+# --- ML artifacts (models are build output, not source) ---
+ml/artifacts/
+*.pkl
+*.joblib
+*.onnx
+
+# --- Editors / OS ---
+.idea/
+.vscode/
+.DS_Store

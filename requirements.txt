@@ -1,0 +1,13 @@
+# Add dependencies ONLY when the phase you are on actually needs them,
+# and always pin the version you installed (pip install X && pip freeze | grep X).
+# An unpinned requirements file is not reproducible, and reproducibility is
+# half of what this project is meant to demonstrate.
+#
+# Rough order in which the guide will have you add things:
+#
+#   Phase 2  requests
+#   Phase 3  confluent-kafka  (or kafka-python)
+#   Phase 4  psycopg[binary]
+#   Phase 5  (dbt runs in its own container - do not add it here)
+#   Phase 8  pandas, scikit-learn, statsmodels, ...
+#   Phase 9  pytest, ruff
