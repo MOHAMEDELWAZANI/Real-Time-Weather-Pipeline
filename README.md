@@ -10,31 +10,15 @@ a time-series model.
 
 ## Target architecture
 
-```text
-   Open-Meteo API
-         │
-         ▼
-  Kafka producer  ──►  Kafka topic: weather.raw  ──►  Kafka consumer
-                                                            │
-                                                            ▼
-                                                   PostgreSQL (raw)
-                                                            │
-                                                            ▼
-                                                    dbt (staging → marts)
-                                                            │
-                                     ┌──────────────────────┴───────────────┐
-                                     ▼                                      ▼
-                            ML forecast model                          Superset
-                          (writes forecast table) ──────────────────►  dashboard
-
-   Airflow orchestrates: dbt runs, model retraining, data-quality checks
-```
+<p align="center">
+  <img src="assets/weather-pipeline-horizontal.png" alt="pipeline" width="880">
+</p>
 
 ## Build log
 
 Tick these off as you go. Every phase is one branch and one merge commit.
 
-- [ ] Phase 0 — Foundations: repo, tooling, environment
+- [x] Phase 0 — Foundations: repo, tooling, environment
 - [ ] Phase 1 — Warehouse: PostgreSQL in Docker
 - [ ] Phase 2 — Source: Open-Meteo ingestion script
 - [ ] Phase 3 — Streaming: Kafka producer and topic
