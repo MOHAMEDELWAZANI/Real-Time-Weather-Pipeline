@@ -1,5 +1,7 @@
 # Real-Time Weather Pipeline — Kafka · Postgres · dbt · Airflow · Superset · ML
-
+<p align="center">
+  <img src="assets/weathercover.png" alt="cover" width="880">
+</p>
 > **Status: Phase 0 — scaffolding.** Nothing is built yet. This README grows as
 > the project grows; each phase in the guide ends by updating it.
 
