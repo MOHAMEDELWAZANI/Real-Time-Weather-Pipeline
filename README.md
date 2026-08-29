@@ -19,7 +19,7 @@ a time-series model.
 Tick these off as you go. Every phase is one branch and one merge commit.
 
 - [x] Phase 0 — Foundations: repo, tooling, environment
-- [ ] Phase 1 — Warehouse: PostgreSQL in Docker
+- [x] Phase 1 — Warehouse: PostgreSQL in Docker
 - [ ] Phase 2 — Source: Open-Meteo ingestion script
 - [ ] Phase 3 — Streaming: Kafka producer and topic
 - [ ] Phase 4 — Sink: Kafka consumer into Postgres
